@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-white font-sans antialiased">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acqclips Studio â€” Video Editor & Audio Captions</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- Production Styles -->
+  <link rel="stylesheet" href="klap_style1.css" />
+  <link rel="stylesheet" href="klap_style2.css" />
+
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body {
+      font-family: var(--font-sans);
+      background-color: #090d16;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+    .caption-card {
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+    .caption-card.active {
+      border-color: #a855f7 !important;
+      background: rgba(168, 85, 247, 0.15) !important;
+      box-shadow: 0 0 20px -3px rgba(168, 85, 247, 0.4);
+    }
+    .aspect-card {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .aspect-card.active {
+      border-color: #38bdf8 !important;
+      background: rgba(56, 189, 248, 0.15) !important;
+      box-shadow: 0 0 15px -3px rgba(56, 189, 248, 0.35);
+    }
+    .clip-tab {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .clip-tab.active {
+      background: #7c3aed;
+      color: white;
+      border-color: #a78bfa;
+    }
+    .caption-preview-box {
+      pointer-events: none;
+      transition: all 0.15s ease;
+    }
+    .font-alex-hormozi {
+      font-family: 'Plus Jakarta Sans', impact, sans-serif;
+      font-weight: 800;
+      color: #ffe600;
+      text-transform: uppercase;
+      text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 4px 4px 10px rgba(0,0,0,0.8);
+    }
+    .font-mr-beast {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      color: #00f0ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 3px 3px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+    }
+    .font-devin-clean {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      color: #ffffff;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 6px 14px;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    .font-neon-glow {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      color: #ff3366;
+      text-shadow: 0 0 8px #ff3366, 0 0 20px #ff00ff, 2px 2px 2px #000;
+    }
+    .font-karaoke-highlight {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      color: #22c55e;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 #000, -2px -2px 0 #000;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col">
+
+  <!-- Top App Navigation -->
+  <header class="h-16 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md px-6 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center gap-4">
+      <a href="/" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-fuchsia-500 flex items-center justify-center font-bold text-lg text-white">A</div>
+        <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">Acqclips</span>
+      </a>
+      <span class="text-xs bg-violet-500/20 text-violet-300 border border-violet-500/30 px-2 py-0.5 rounded-full font-medium">AI Speech-to-Captions</span>
+    </div>
+
+    <!-- Active Video Title -->
+    <div class="hidden md:flex flex-col items-center max-w-md text-center">
+      <h2 id="video-header-title" class="text-sm font-semibold truncate text-slate-200">Loading Video...</h2>
+      <span id="video-header-subtitle" class="text-[11px] text-slate-400">Total duration: -- â€¢ AI Speech Recognition Active</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-3">
+      <a href="/" class="px-3.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition-colors">
+        &larr; Back to Cloner
+      </a>
+      <button onclick="applyAndReclip()" id="export-btn" class="px-4 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 rounded-lg shadow-lg shadow-violet-600/30 transition-all flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Re-generate Clips
+      </button>
+      <a id="current-download-btn" href="#" download class="px-4 py-1.5 text-xs font-semibold text-slate-900 bg-emerald-400 hover:bg-emerald-300 rounded-lg transition-colors flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Download Active Clip
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Editor Layout: Left Settings Sidebar, Middle Video Canvas, Right Clips Reel -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- LEFT PANEL: Editor Controls (Captions, Resolution, Duration, Num Clips) -->
+    <aside class="w-80 md:w-96 border-r border-slate-800 bg-slate-900/60 p-5 overflow-y-auto shrink-0 flex flex-col gap-6">
+      
+      <!-- Section 1: Caption Styles -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+            Caption Styles (5 Types)
+          </label>
+          <span class="text-[10px] text-violet-400 font-medium">Whisper AI Synced</span>
+        </div>
+
+        <div class="grid grid-cols-1 gap-2.5">
+          <!-- 1. Alex Hormozi -->
+          <div class="caption-card active p-3 rounded-xl border border-slate-700/70 bg-slate-800/40" onclick="selectCaptionStyle('alex_hormozi', this)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-white">Alex Hormozi Viral</span>
+              <span class="text-[10px] bg-yellow-400/20 text-yellow-300 px-1.5 py-0.5 rounded font-bold">Trending</span>
+            </div>
+            <p class="text-[11px] text-yellow-300 font-extrabold uppercase mt-1 tracking-wider">"YOU DON'T GET RICH BY ACCIDENT"</p>
+            <span class="text-[10px] text-slate-400">Bold punchy yellow with black stroke & shadow</span>
+          </div>
+
+          <!-- 2. MrBeast High Impact -->
+          <div class="caption-card p-3 rounded-xl border border-slate-700/70 bg-slate-800/40" onclick="selectCaptionStyle('mr_beast', this)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-white">MrBeast Cyan Punch</span>
+              <span class="text-[10px] bg-cyan-400/20 text-cyan-300 px-1.5 py-0.5 rounded font-bold">High CTR</span>
+            </div>
+            <p class="text-[11px] text-cyan-300 font-extrabold uppercase mt-1 tracking-wide">"WE JUST GAVE AWAY $100,000!"</p>
+            <span class="text-[10px] text-slate-400">Cyan text with high contrast edge stroke</span>
+          </div>
+
+          <!-- 3. Devin Clean Minimal -->
+          <div class="caption-card p-3 rounded-xl border border-slate-700/70 bg-slate-800/40" onclick="selectCaptionStyle('devin_clean', this)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-white">Devin Clean Sans</span>
+              <span class="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded font-medium">Minimal</span>
+            </div>
+            <p class="text-[11px] text-white font-medium mt-1 bg-black/60 inline-block px-2 py-0.5 rounded">Modern subtitle pill style</p>
+            <span class="text-[10px] text-slate-400 block mt-1">Translucent pill background with clean white typography</span>
+          </div>
+
+          <!-- 4. Cyber Neon Glow -->
+          <div class="caption-card p-3 rounded-xl border border-slate-700/70 bg-slate-800/40" onclick="selectCaptionStyle('neon_glow', this)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-white">Cyber Neon Glow</span>
+              <span class="text-[10px] bg-pink-500/20 text-pink-300 px-1.5 py-0.5 rounded font-medium">Gaming</span>
+            </div>
+            <p class="text-[11px] text-pink-400 font-bold mt-1">GLOWING NEON TECH VIBE</p>
+            <span class="text-[10px] text-slate-400">Hot pink glow with dual-tone aura</span>
+          </div>
+
+          <!-- 5. Karaoke Green Pop -->
+          <div class="caption-card p-3 rounded-xl border border-slate-700/70 bg-slate-800/40" onclick="selectCaptionStyle('karaoke_highlight', this)">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-white">Karaoke Emerald Pop</span>
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-medium">Auto-Pop</span>
+            </div>
+            <p class="text-[11px] text-emerald-400 font-extrabold uppercase mt-1">"WATCH WHAT HAPPENS NEXT"</p>
+            <span class="text-[10px] text-slate-400">Green highlight word effect for retention</span>
+          </div>
+        </div>
+      </div>
+
+      
+      <!-- Section 1.5: Caption Position (Up, Middle, Down) -->
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-2.5">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+          Caption Position (Adjuster)
+        </label>
+        <div class="grid grid-cols-3 gap-2">
+          <!-- Up / Top -->
+          <button type="button" onclick="setEditorCaptionPos('up', this)" class="caption-pos-card py-2 text-xs font-semibold rounded-xl border border-slate-700/70 bg-slate-800/40 text-slate-300 hover:text-white flex flex-col items-center gap-1 transition-all">
+            <div class="w-5 h-2 bg-slate-500 rounded-sm mb-0.5"></div>
+            <span>Up (Top)</span>
+          </button>
+
+          <!-- Middle / Center -->
+          <button type="button" onclick="setEditorCaptionPos('middle', this)" class="caption-pos-card py-2 text-xs font-semibold rounded-xl border border-slate-700/70 bg-slate-800/40 text-slate-300 hover:text-white flex flex-col items-center gap-1 transition-all">
+            <div class="w-5 h-2 bg-slate-500 rounded-sm mb-0.5"></div>
+            <span>Middle</span>
+          </button>
+
+          <!-- Down / Bottom (Default) -->
+          <button type="button" onclick="setEditorCaptionPos('down', this)" class="caption-pos-card active py-2 text-xs font-semibold rounded-xl border border-emerald-500 bg-emerald-500/20 text-emerald-300 flex flex-col items-center gap-1 transition-all">
+            <div class="w-5 h-2 bg-emerald-400 rounded-sm mb-0.5"></div>
+            <span>Down (Bottom)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 2: Video Resolution & Aspect Ratio -->
+      <div>
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-3">
+          <svg class="w-4 h-4 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          Video Resolution & Ratio
+        </label>
+        
+        <div class="grid grid-cols-3 gap-2.5">
+          <!-- 9:16 -->
+          <div class="aspect-card active p-2.5 rounded-xl border border-slate-700/70 bg-slate-800/40 text-center" onclick="selectAspectRatio('9:16', this)">
+            <div class="w-5 h-8 mx-auto border-2 border-sky-400 rounded-sm mb-1.5"></div>
+            <span class="text-xs font-bold text-white block">9:16</span>
+            <span class="text-[10px] text-slate-400 block">720x1280</span>
+            <span class="text-[9px] text-sky-400 font-medium block">TikTok / Shorts</span>
+          </div>
+
+          <!-- 1:1 -->
+          <div class="aspect-card p-2.5 rounded-xl border border-slate-700/70 bg-slate-800/40 text-center" onclick="selectAspectRatio('1:1', this)">
+            <div class="w-6 h-6 mx-auto border-2 border-slate-400 rounded-sm mb-1.5"></div>
+            <span class="text-xs font-bold text-white block">1:1</span>
+            <span class="text-[10px] text-slate-400 block">720x720</span>
+            <span class="text-[9px] text-slate-400 block">Square Post</span>
+          </div>
+
+          <!-- 16:9 -->
+          <div class="aspect-card p-2.5 rounded-xl border border-slate-700/70 bg-slate-800/40 text-center" onclick="selectAspectRatio('16:9', this)">
+            <div class="w-8 h-4.5 mx-auto border-2 border-slate-400 rounded-sm mb-2.5"></div>
+            <span class="text-xs font-bold text-white block">16:9</span>
+            <span class="text-[10px] text-slate-400 block">1280x720</span>
+            <span class="text-[9px] text-slate-400 block">YouTube HD</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Time Duration of Clip -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Clip Time Duration
+          </label>
+          <span id="duration-val-label" class="text-xs font-bold text-emerald-400">30 seconds</span>
+        </div>
+        <input type="range" id="clip-duration-slider" min="15" max="60" step="5" value="30" oninput="updateDurationValue(this.value)" class="w-full accent-emerald-500 bg-slate-800 h-2 rounded-lg cursor-pointer" />
+        <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+          <span>15s (Snackable)</span>
+          <span>30s (Optimal)</span>
+          <span>60s (In-depth)</span>
+        </div>
+      </div>
+
+      <!-- Section 4: Number of Clips to Create -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-fuchsia-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            Number of Clips
+          </label>
+          <span id="num-clips-label" class="text-xs font-bold text-fuchsia-400">4 Clips</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2">
+          <button class="clip-count-btn py-1.5 text-xs font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white" onclick="selectClipCount(2, this)">2</button>
+          <button class="clip-count-btn py-1.5 text-xs font-semibold rounded-lg bg-violet-600 border border-violet-500 text-white active" onclick="selectClipCount(4, this)">4</button>
+          <button class="clip-count-btn py-1.5 text-xs font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white" onclick="selectClipCount(6, this)">6</button>
+          <button class="clip-count-btn py-1.5 text-xs font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:text-white" onclick="selectClipCount(8, this)">8</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MIDDLE: Main Video Canvas & Real-time Live Speech Caption Overlay -->
+    <main class="flex-1 bg-slate-950 p-6 flex flex-col items-center justify-center relative overflow-hidden">
+      
+      <!-- Video Container Frame matching selected aspect ratio -->
+      <div id="video-frame-container" class="relative max-h-[75vh] aspect-[9/16] bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-800 flex items-center justify-center transition-all duration-300" style="max-width: 360px;">
+        
+        <!-- Live HTML5 Video element -->
+        <video id="editor-video-player" controls autoplay loop playsinline class="w-full h-full object-cover">
+          <source src="" type="video/mp4" />
+        </video>
+
+        <!-- Live Real-Time Interactive Spoken Caption Preview Overlay -->
+        <div id="caption-overlay" class="absolute bottom-16 inset-x-4 text-center caption-preview-box select-none">
+          <p id="caption-overlay-text" class="font-alex-hormozi text-lg md:text-xl">"AI SPEECH RECOGNITION ACTIVE"</p>
+        </div>
+
+        <!-- Watermark/Badge -->
+        <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[11px] font-semibold text-slate-300 border border-white/10">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="active-clip-pill">Clip 1</span>
+        </div>
+        
+        <div class="absolute top-3 right-3 bg-violet-600/90 text-white px-2 py-0.5 rounded-full text-[10px] font-bold shadow-lg" id="active-score-pill">
+          Score: 98
+        </div>
+
+      </div>
+
+      <!-- Video Control Bar / Timeline Scrub Info -->
+      <div class="mt-4 flex items-center gap-4 bg-slate-900/80 backdrop-blur-md px-5 py-2.5 rounded-full border border-slate-800 text-xs text-slate-400">
+        <span id="playback-time">00:00 / 00:30</span>
+        <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+        <span id="aspect-label">Aspect: 9:16 (720x1280)</span>
+        <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+        <span id="caption-style-label" class="text-violet-400 font-medium">Style: Alex Hormozi</span>
+        <span class="w-1 h-1 bg-slate-600 rounded-full"></span>
+        <span id="transcript-count" class="text-emerald-400 font-medium">Transcripts synced</span>
+      </div>
+
+      <!-- Prominent Main Download Action Bar -->
+      <div class="mt-4 flex items-center gap-3">
+        <a id="main-canvas-download-btn" href="#" download class="px-6 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/35 transition-all flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span id="main-download-label">Download Active Clip</span>
+        </a>
+        <button onclick="downloadAllClips()" class="px-4 py-2.5 rounded-xl font-semibold text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1.5" title="Download all generated clips in this batch">
+          <svg class="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-2m-4-1v8m0 0l3-3m-3 3L9 8m-5 5h2.586a1 1 0 01.707.293l2.414 2.414a1 1 0 00.707.293h3.172a1 1 0 00.707-.293l2.414-2.414a1 1 0 01.707-.293H20"/></svg>
+          Download All Clips
+        </button>
+      </div>
+
+    </main>
+
+    <!-- RIGHT PANEL: Clip Selection Tabs & Virality Scores -->
+    <aside class="w-72 border-l border-slate-800 bg-slate-900/40 p-4 overflow-y-auto shrink-0 flex flex-col gap-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Generated Clips</h3>
+        <span id="clips-count-badge" class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-bold">4 Clips</span>
+      </div>
+
+      <div id="clips-list" class="flex flex-col gap-2.5">
+        <!-- Rendered clips tabs will appear dynamically -->
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Re-generate / Processing Modal Overlay -->
+  <div id="processing-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+      <div class="w-14 h-14 mx-auto mb-4 relative flex items-center justify-center">
+        <div class="w-14 h-14 rounded-full border-4 border-violet-500/20 border-t-violet-500 animate-spin"></div>
+        <div class="w-8 h-8 rounded-full bg-violet-600/30 flex items-center justify-center absolute">
+          <svg class="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 100-6 3 3 0 000 6z"/></svg>
+        </div>
+      </div>
+      <h3 class="text-base font-bold text-white mb-1">AI Transcribing & Rendering Clips...</h3>
+      <p id="modal-status-text" class="text-xs text-slate-400 mb-4">Listening to speech & creating dynamic captions...</p>
+      <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+        <div class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 w-3/4 animate-pulse"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let currentJob = null;
+    let activeClipIndex = 0;
+    let selectedCaptionStyle = 'alex_hormozi';
+    let selectedResolution = '9:16';
+    let selectedDuration = 30;
+    let selectedNumClips = 4;
+    let selectedCaptionPosition = "down";
+    let pollInterval = null;
+    let activeClipTranscripts = [];
+
+    // Load job data from URL parameter or localStorage
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const jobId = urlParams.get('job_id') || localStorage.getItem('last_acqclips_job_id');
+
+      if (jobId) {
+        await loadJobData(jobId);
+      } else {
+        loadSampleData();
+      }
+
+      setupVideoListeners();
+    });
+
+    async function loadJobData(jobId) {
+      try {
+        const res = await fetch('/api/job-status/' + jobId);
+        if (!res.ok) throw new Error('Job not found');
+        const data = await res.json();
+        
+        currentJob = data;
+        currentJob.job_id = jobId;
+
+        document.getElementById('video-header-title').innerText = data.video_title || 'YouTube Video';
+        document.getElementById('video-header-subtitle').innerText = `Duration: ${data.video_duration || 60}s â€¢ Whisper AI Audio Recognized`;
+        
+        if (data.settings) {
+          selectedCaptionStyle = data.settings.caption_style || selectedCaptionStyle;
+          selectedResolution = data.settings.resolution || selectedResolution;
+          selectedDuration = parseInt(data.settings.target_duration || selectedDuration);
+          selectedNumClips = parseInt(data.settings.num_clips || selectedNumClips);
+          selectedCaptionPosition = data.settings.caption_position || selectedCaptionPosition;
+          updateControlsUI();
+        }
+
+        renderClipsSidebar();
+        selectClip(0);
+
+      } catch (e) {
+        console.warn('Failed to fetch job data:', e);
+        loadSampleData();
+      }
+    }
+
+    function loadSampleData() {
+      currentJob = {
+        video_title: 'Rick Astley - Never Gonna Give You Up (Official Video)',
+        video_duration: 213,
+        clips: [
+          { 
+            id: 1, 
+            title: 'The Hook & Core Insight', 
+            score: 98, 
+            start: 17, 
+            end: 41, 
+            duration: '24s', 
+            filename: 'clip_dQw4w9WgXcQ_1.mp4', 
+            url: '/media/clips/clip_dQw4w9WgXcQ_1.mp4',
+            transcriptions: [
+              { start: 1.4, end: 4.5, text: "WE'RE NO STRANGERS TO LOVE" },
+              { start: 4.6, end: 8.8, text: "YOU KNOW THE RULES AND SO DO I" },
+              { start: 8.9, end: 13.5, text: "A FULL COMMITMENT'S WHAT I'M THINKING OF" }
+            ]
+          },
+          { 
+            id: 2, 
+            title: 'Why Most People Get This Wrong', 
+            score: 95, 
+            start: 63, 
+            end: 91, 
+            duration: '28s', 
+            filename: 'clip_dQw4w9WgXcQ_2.mp4', 
+            url: '/media/clips/clip_dQw4w9WgXcQ_2.mp4',
+            transcriptions: [
+              { start: 0.5, end: 4.2, text: "NEVER GONNA GIVE YOU UP" },
+              { start: 4.3, end: 8.0, text: "NEVER GONNA LET YOU DOWN" }
+            ]
+          },
+          { id: 3, title: 'Key Real-World Strategy', score: 92, start: 117, end: 143, duration: '26s', filename: 'clip_dQw4w9WgXcQ_3.mp4', url: '/media/clips/clip_dQw4w9WgXcQ_3.mp4' },
+          { id: 4, title: 'Uncensored Truth & Advice', score: 89, start: 161, end: 186, duration: '25s', filename: 'clip_dQw4w9WgXcQ_4.mp4', url: '/media/clips/clip_dQw4w9WgXcQ_4.mp4' }
+        ]
+      };
+      document.getElementById('video-header-title').innerText = currentJob.video_title;
+      renderClipsSidebar();
+      selectClip(0);
+    }
+
+    function renderClipsSidebar() {
+      const list = document.getElementById('clips-list');
+      list.innerHTML = '';
+
+      if (!currentJob || !currentJob.clips) return;
+
+      document.getElementById('clips-count-badge').innerText = `${currentJob.clips.length} Clips`;
+
+      currentJob.clips.forEach((clip, idx) => {
+        const item = document.createElement('div');
+        item.className = `clip-tab p-3 rounded-xl border border-slate-800 bg-slate-800/40 cursor-pointer ${idx === activeClipIndex ? 'active' : 'hover:border-slate-700'}`;
+        item.onclick = () => selectClip(idx);
+        item.innerHTML = `
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-white">Clip ${clip.id}</span>
+            <span class="text-[10px] font-bold ${clip.score >= 95 ? 'text-emerald-400' : 'text-violet-400'}">Virality: ${clip.score}</span>
+          </div>
+          <p class="text-[11px] text-slate-300 truncate">${clip.title}</p>
+          <div class="flex items-center justify-between text-[10px] text-slate-400 mt-2">
+            <span class="font-medium text-emerald-400">${clip.duration}</span>
+            <span class="text-violet-400 font-medium">Select &rarr;</span>
+          </div>
+          <a href="${clip.url}" download="${clip.filename || 'clip_' + clip.id + '.mp4'}" onclick="event.stopPropagation();" class="mt-2.5 w-full py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-semibold text-[11px] flex items-center justify-center gap-1.5 transition-colors no-underline">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Download Clip ${clip.id}
+          </a>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    
+    function downloadAllClips() {
+      if (!currentJob || !currentJob.clips || currentJob.clips.length === 0) {
+        alert('No clips available to download.');
+        return;
+      }
+      currentJob.clips.forEach((c, i) => {
+        setTimeout(() => {
+          const a = document.createElement('a');
+          a.href = c.url;
+          a.download = c.filename || ('clip_' + c.id + '.mp4');
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }, i * 400);
+      });
+    }
+
+    function selectClip(idx) {
+      if (!currentJob || !currentJob.clips || !currentJob.clips[idx]) return;
+      activeClipIndex = idx;
+      const clip = currentJob.clips[idx];
+
+      const player = document.getElementById('editor-video-player');
+      player.src = clip.url;
+      player.play().catch(() => {});
+
+      document.getElementById('active-clip-pill').innerText = `Clip ${clip.id}`;
+      document.getElementById('active-score-pill').innerText = `Score: ${clip.score}`;
+      
+      activeClipTranscripts = clip.transcriptions || [];
+      document.getElementById('transcript-count').innerText = activeClipTranscripts.length > 0 
+        ? `${activeClipTranscripts.length} voice segments synced` 
+        : `AI captions synced`;
+
+      const downloadBtn = document.getElementById('current-download-btn');
+      downloadBtn.href = clip.url;
+      downloadBtn.download = clip.filename || `clip_${clip.id}.mp4`;
+
+      const mainCanvasBtn = document.getElementById('main-canvas-download-btn');
+      if (mainCanvasBtn) {
+        mainCanvasBtn.href = clip.url;
+        mainCanvasBtn.download = clip.filename || `clip_${clip.id}.mp4`;
+        document.getElementById('main-download-label').innerText = `Download Clip ${clip.id} (${clip.duration})`;
+      }
+
+      const tabs = document.querySelectorAll('.clip-tab');
+      tabs.forEach((tab, i) => {
+        if (i === idx) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+    }
+
+    
+    function setEditorCaptionPos(pos, el) {
+      selectedCaptionPosition = pos;
+      document.querySelectorAll('.caption-pos-card').forEach(btn => {
+        btn.classList.remove('active', 'border-emerald-500', 'bg-emerald-500/20', 'text-emerald-300');
+        btn.classList.add('border-slate-700/70', 'bg-slate-800/40', 'text-slate-300');
+        const b = btn.querySelector('div');
+        if (b) b.className = 'w-5 h-2 bg-slate-500 rounded-sm mb-0.5';
+      });
+      el.classList.add('active', 'border-emerald-500', 'bg-emerald-500/20', 'text-emerald-300');
+      el.classList.remove('border-slate-700/70', 'bg-slate-800/40', 'text-slate-300');
+      const b = el.querySelector('div');
+      if (b) b.className = 'w-5 h-2 bg-emerald-400 rounded-sm mb-0.5';
+
+      // Update live overlay positioning on the video canvas
+      const overlayBox = document.getElementById('caption-overlay');
+      if (overlayBox) {
+        overlayBox.classList.remove('bottom-16', 'top-16', 'top-1/2', '-translate-y-1/2');
+        if (pos === 'up') {
+          overlayBox.style.top = '14%';
+          overlayBox.style.bottom = 'auto';
+        } else if (pos === 'middle') {
+          overlayBox.style.top = '45%';
+          overlayBox.style.bottom = 'auto';
+        } else {
+          overlayBox.style.top = 'auto';
+          overlayBox.style.bottom = '4rem';
+        }
+      }
+    }
+
+    function selectCaptionStyle(style, el) {
+      selectedCaptionStyle = style;
+      document.querySelectorAll('.caption-card').forEach(c => c.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      applyCaptionOverlayStyle();
+    }
+
+    function applyCaptionOverlayStyle() {
+      const overlay = document.getElementById('caption-overlay-text');
+      overlay.className = '';
+      
+      if (selectedCaptionStyle === 'alex_hormozi') {
+        overlay.className = 'font-alex-hormozi text-lg md:text-xl';
+        document.getElementById('caption-style-label').innerText = 'Style: Alex Hormozi';
+      } else if (selectedCaptionStyle === 'mr_beast') {
+        overlay.className = 'font-mr-beast text-lg md:text-xl';
+        document.getElementById('caption-style-label').innerText = 'Style: MrBeast Cyan';
+      } else if (selectedCaptionStyle === 'devin_clean') {
+        overlay.className = 'font-devin-clean text-sm md:text-base';
+        document.getElementById('caption-style-label').innerText = 'Style: Devin Clean';
+      } else if (selectedCaptionStyle === 'neon_glow') {
+        overlay.className = 'font-neon-glow text-lg md:text-xl';
+        document.getElementById('caption-style-label').innerText = 'Style: Cyber Neon';
+      } else if (selectedCaptionStyle === 'karaoke_highlight') {
+        overlay.className = 'font-karaoke-highlight text-lg md:text-xl';
+        document.getElementById('caption-style-label').innerText = 'Style: Karaoke Pop';
+      }
+    }
+
+    function selectAspectRatio(ratio, el) {
+      selectedResolution = ratio;
+      document.querySelectorAll('.aspect-card').forEach(c => c.classList.remove('active'));
+      if (el) el.classList.add('active');
+
+      const container = document.getElementById('video-frame-container');
+      const label = document.getElementById('aspect-label');
+
+      if (ratio === '9:16') {
+        container.style.aspectRatio = '9 / 16';
+        container.style.maxWidth = '360px';
+        label.innerText = 'Aspect: 9:16 (720x1280)';
+      } else if (ratio === '1:1') {
+        container.style.aspectRatio = '1 / 1';
+        container.style.maxWidth = '520px';
+        label.innerText = 'Aspect: 1:1 (720x720)';
+      } else if (ratio === '16:9') {
+        container.style.aspectRatio = '16 / 9';
+        container.style.maxWidth = '780px';
+        label.innerText = 'Aspect: 16:9 (1280x720)';
+      }
+    }
+
+    function updateDurationValue(val) {
+      selectedDuration = parseInt(val);
+      document.getElementById('duration-val-label').innerText = `${val} seconds`;
+    }
+
+    function selectClipCount(count, el) {
+      selectedNumClips = parseInt(count);
+      document.querySelectorAll('.clip-count-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-violet-600', 'text-white', 'border-violet-500');
+        btn.classList.add('bg-slate-800', 'text-slate-300', 'border-slate-700');
+      });
+      el.classList.add('active', 'bg-violet-600', 'text-white', 'border-violet-500');
+      el.classList.remove('bg-slate-800', 'text-slate-300', 'border-slate-700');
+      document.getElementById('num-clips-label').innerText = `${count} Clips`;
+    }
+
+    function updateControlsUI() {
+      const durationSlider = document.getElementById('clip-duration-slider');
+      if (durationSlider) {
+        durationSlider.value = selectedDuration;
+        document.getElementById('duration-val-label').innerText = `${selectedDuration} seconds`;
+      }
+    }
+
+    // Video Scrub & Live Audio-Time-Synced Caption Overlay
+    function setupVideoListeners() {
+      const player = document.getElementById('editor-video-player');
+      const overlayText = document.getElementById('caption-overlay-text');
+
+      player.addEventListener('timeupdate', () => {
+        const cur = player.currentTime;
+        const dur = player.duration || selectedDuration;
+        document.getElementById('playback-time').innerText = `${formatTime(cur)} / ${formatTime(dur)}`;
+
+        // Match currentTime with real transcribed audio phrases
+        if (activeClipTranscripts && activeClipTranscripts.length > 0) {
+          const match = activeClipTranscripts.find(t => cur >= t.start && cur <= (t.end + 0.5));
+          if (match) {
+            let displayText = match.text;
+            if (selectedCaptionStyle !== 'devin_clean') {
+              displayText = displayText.toUpperCase();
+            }
+            overlayText.innerText = displayText;
+            overlayText.style.display = 'inline-block';
+          } else {
+            overlayText.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    // Re-generate clips with customized parameters & Whisper transcription
+    async function applyAndReclip() {
+      const modal = document.getElementById('processing-modal');
+      const statusText = document.getElementById('modal-status-text');
+      modal.classList.remove('hidden');
+      statusText.innerText = `Transcribing audio with Whisper AI & rendering ${selectedNumClips} clips (${selectedDuration}s duration)...`;
+
+      try {
+        const target = (currentJob && (currentJob.source_file || currentJob.target)) || 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+        
+        const payload = {
+          source_path: target,
+          num_clips: selectedNumClips,
+          duration: selectedDuration,
+          resolution: selectedResolution,
+          caption_style: selectedCaptionStyle,
+          caption_position: selectedCaptionPosition
+        };
+
+        const res = await fetch('/api/generate-clips', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.job_id) {
+          throw new Error(data.error || 'Failed to start generation job');
+        }
+
+        pollEditorJob(data.job_id);
+
+      } catch (err) {
+        modal.classList.add('hidden');
+        alert('Error: ' + err.message);
+      }
+    }
+
+    function pollEditorJob(jobId) {
+      const statusText = document.getElementById('modal-status-text');
+      if (pollInterval) clearInterval(pollInterval);
+
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/job-status/' + jobId);
+          const data = await res.json();
+
+          if (data.progress) {
+            statusText.innerText = data.progress;
+          }
+
+          if (data.status === 'completed') {
+            clearInterval(pollInterval);
+            document.getElementById('processing-modal').classList.add('hidden');
+            currentJob = data;
+            renderClipsSidebar();
+            selectClip(0);
+          } else if (data.status === 'failed') {
+            clearInterval(pollInterval);
+            document.getElementById('processing-modal').classList.add('hidden');
+            alert('Failed to re-generate: ' + (data.progress || 'Unknown error'));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
+

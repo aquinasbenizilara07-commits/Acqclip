@@ -1,0 +1,18 @@
+# Node
+node_modules/
+
+# Downloaded media and generated clips
+media/
+outputs/
+
+# Test videos
+*.mp4
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temp files
+*.log
+*.tmp
