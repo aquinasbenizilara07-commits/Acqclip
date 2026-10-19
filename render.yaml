@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: klap-ai-engine
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /
+    autoDeploy: true
