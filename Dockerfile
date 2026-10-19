@@ -19,6 +19,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
+# Update yt-dlp to latest (YouTube blocks old versions)
+RUN pip3 install --no-cache-dir --break-system-packages --upgrade yt-dlp
+
+# Pre-download Whisper 'tiny' model so first request doesn't timeout
+RUN python3 -c "from faster_whisper import WhisperModel; WhisperModel('tiny', device='cpu', compute_type='int8')" || echo "Whisper pre-download skipped"
+
 # Install Node dependencies
 COPY package*.json ./
 RUN npm install --omit=dev

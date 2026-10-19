@@ -80,6 +80,7 @@ app.post('/api/generate-clips', upload.single('video_file'), async (req, res) =>
   ]);
 
   let outputBuffer = '';
+  let stderrBuffer = '';
 
   pyProcess.stdout.on('data', (data) => {
     const text = data.toString();
@@ -99,7 +100,9 @@ app.post('/api/generate-clips', upload.single('video_file'), async (req, res) =>
   });
 
   pyProcess.stderr.on('data', (data) => {
-    console.error(`[Job ${jobId} stderr]:`, data.toString().trim());
+    const text = data.toString().trim();
+    console.error(`[Job ${jobId} stderr]:`, text);
+    stderrBuffer += text + '\n';
   });
 
   pyProcess.on('close', (code) => {
@@ -125,9 +128,27 @@ app.post('/api/generate-clips', upload.single('video_file'), async (req, res) =>
       }
     }
 
+    // Log full stderr for debugging on Render
+    if (stderrBuffer) {
+      console.error(`[Job ${jobId}] Full stderr:\n`, stderrBuffer);
+    }
+
+    // Extract a human-readable hint from stderr
+    let errorHint = 'Failed to process video. Please check URL or file format.';
+    if (stderrBuffer.includes('Sign in to confirm') || stderrBuffer.includes('bot')) {
+      errorHint = 'YouTube blocked the download (bot detection). Try uploading a video file directly instead of a URL.';
+    } else if (stderrBuffer.includes('Video unavailable') || stderrBuffer.includes('private')) {
+      errorHint = 'Video unavailable or private. Check the URL.';
+    } else if (stderrBuffer.includes('ffmpeg') || stderrBuffer.includes('ffprobe')) {
+      errorHint = 'FFmpeg error during clip rendering. Check server logs.';
+    } else if (stderrBuffer.includes('ModuleNotFoundError') || stderrBuffer.includes('ImportError')) {
+      errorHint = 'Python dependency missing on server. Check build logs.';
+    }
+
     jobs.set(jobId, {
       status: 'failed',
-      progress: 'Failed to process video. Please check URL or file format.'
+      progress: errorHint,
+      debug_stderr: stderrBuffer.slice(-2000) // last 2000 chars for API inspection
     });
   });
 
