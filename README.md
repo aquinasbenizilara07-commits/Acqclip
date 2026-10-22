@@ -29,29 +29,51 @@
 
 ---
 
-## ⚙️ Setup & Installation
+## ⚙️ Setup & Requirements
 
-### Prerequisites
-- Node.js v18+
-- Python 3.10+
-- FFmpeg (in PATH)
-- yt-dlp (`pip install yt-dlp`)
+### 1. Prerequisites & System Tools
 
-### Install & Run
+| Software | Version | Purpose | Installation |
+|---|---|---|---|
+| **Node.js** | v18+ | Express Backend & APIs | [Download Node.js](https://nodejs.org/) (`node -v`) |
+| **Python** | 3.10+ | Video processing & Whisper AI | [Download Python](https://www.python.org/) *(Check "Add to PATH")* |
+| **FFmpeg** | Latest | Video slicing, rendering, captions | Windows: `winget install Gyan.FFmpeg`<br>Linux: `sudo apt install ffmpeg`<br>Mac: `brew install ffmpeg` |
+
+> [!IMPORTANT]
+> Ensure **FFmpeg** and **Python** are both added to your system's `PATH`.
+
+---
+
+### 2. Installation Steps
 
 ```bash
-# Clone the repo
+# 1. Clone the repository
 git clone https://github.com/aquinasbenizilara07-commits/Acqclip.git
 cd Acqclip
 
-# Install Node dependencies
+# 2. Install Node.js dependencies
 npm install
 
-# Start the server
+# 3. Install Python dependencies
+pip install -r requirements.txt
+
+# 4. (Recommended) Ensure yt-dlp is up-to-date
+pip install --upgrade yt-dlp
+```
+
+---
+
+### 3. How to Run
+
+**Option A — Windows One-Click Launcher:**
+Double-click `run.bat` (automatically installs missing dependencies and launches the app in your browser).
+
+**Option B — Command Line:**
+```bash
 node server.js
 ```
 
-Then open **http://localhost:3000** in your browser.
+Then navigate to **http://localhost:3000** in your browser.
 
 ---
 
