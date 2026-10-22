@@ -1,768 +1,801 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth bg-white font-sans antialiased">
+<html lang="en" class="h-full bg-slate-950 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Video Tools for Creators | Acqclips</title>
-  <meta name="description" content="Acqclips' free AI video tools help you generate shorts, resize, crop, trim and more. Try it free today!" />
+  <title>Acqclips — AI Video Short Generator & Editor</title>
   
-  <!-- Modern Typography: Plus Jakarta Sans / Inter -->
+  <!-- Modern Clean Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   
-  <!-- Production stylesheets -->
-  <link rel="stylesheet" href="klap_style1.css" />
-  <link rel="stylesheet" href="klap_style2.css" />
-
   <style>
     :root {
-      --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-    body {
-      font-family: var(--font-sans);
-      color: #020617;
-      background-color: #ffffff;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
+      --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(99, 102, 241, 0.4);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
     }
     
-    /* Interactive Card Transitions */
-    .tool-card {
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
-      cursor: pointer;
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    .tool-card:hover {
-      transform: translateY(-5px);
-    }
-    .tool-card:hover .video-container {
-      background-color: #e2e8f0;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-    }
-    .tool-card:hover video {
-      transform: scale(1.03);
-    }
-    video {
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Infinite Marquee Animation */
-    @keyframes marquee {
-      0% { transform: translateX(0%); }
-      100% { transform: translateX(-50%); }
-    }
-    .animate-marquee {
+    
+    body {
+      font-family: var(--font-main);
+      background-color: var(--bg);
+      color: #f1f5f9;
+      min-height: 100vh;
       display: flex;
-      width: max-content;
-      animation: marquee 32s linear infinite;
-    }
-    .animate-marquee:hover {
-      animation-play-state: paused;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
     }
 
-    /* Sticky Navigation & Glassmorphism */
+    /* Ambient glow backgrounds */
+    .ambient-glow {
+      position: absolute;
+      width: 550px;
+      height: 550px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.04) 50%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { top: -100px; left: 50%; transform: translateX(-50%); }
+    .glow-2 { bottom: -150px; right: -100px; }
+
+    /* Header */
     header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      background: rgba(255, 255, 255, 0.88);
-      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      background: rgba(9, 13, 22, 0.85);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    /* Active Tool Modal / Generator Output Animation */
-    @keyframes fadeInModal {
-      from { opacity: 0; transform: scale(0.96) translateY(8px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      text-decoration: none;
+      color: inherit;
     }
-    .modal-active {
-      animation: fadeInModal 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+    .brand-name {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      padding: 0.2rem 0.55rem;
+      border-radius: 9999px;
+      margin-left: 0.3rem;
     }
 
-    /* Loading progress shimmer */
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .header-btn {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 0.45rem 0.95rem;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 3rem 1.25rem 5rem 1.25rem;
+      width: 100%;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3.25rem);
+      font-weight: 800;
+      line-height: 1.15;
+      text-align: center;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.9rem;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      text-align: center;
+      font-size: 1.05rem;
+      color: #94a3b8;
+      max-width: 620px;
+      margin: 0 auto 2.5rem auto;
+      line-height: 1.55;
+    }
+
+    /* Card Panels */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.45);
+      transition: border-color 0.2s ease;
+    }
+
+    /* Generator Input Bar */
+    .input-bar {
+      display: flex;
+      align-items: center;
+      background: rgba(10, 14, 25, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 0.35rem 0.45rem 0.35rem 0.85rem;
+      gap: 0.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s ease;
+    }
+    .input-bar:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    .input-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    .input-bar input::placeholder {
+      color: #64748b;
+    }
+
+    .upload-icon-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .upload-icon-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .generate-btn {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      font-size: 0.92rem;
+      padding: 0.75rem 1.45rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+      white-space: nowrap;
+    }
+    .generate-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+      filter: brightness(1.08);
+    }
+    .generate-btn:active {
+      transform: translateY(0);
+    }
+    .generate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Options Grid */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .option-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.65rem;
+    }
+
+    .btn-segmented {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.4rem;
+    }
+    .btn-segmented-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+    }
+
+    .seg-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.55rem 0.2rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .seg-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: #fff;
+    }
+    .seg-btn.active {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: #6366f1;
+      color: #c7d2fe;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.25);
+    }
+
+    /* Status & Progress Box */
+    .status-panel {
+      margin-top: 1.5rem;
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 12px;
+      padding: 1.15rem 1.35rem;
+      display: none;
+    }
+    .status-panel.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .status-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #c7d2fe;
+      margin-bottom: 0.75rem;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 60%;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #6366f1, #a855f7, #6366f1);
+      background-size: 200% 100%;
+      animation: shimmer 1.8s infinite linear;
+    }
+
     @keyframes shimmer {
       0% { background-position: -200% 0; }
       100% { background-position: 200% 0; }
     }
-    .shimmer-bg {
-      background: linear-gradient(90deg, #8b5cf6 25%, #d946ef 50%, #8b5cf6 75%);
-      background-size: 200% 100%;
-      animation: shimmer 2s infinite;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Feature Pillars */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.25rem;
+      margin-top: 2.5rem;
+    }
+    .feature-card {
+      background: rgba(18, 24, 38, 0.45);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.35rem;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .feature-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.85rem;
+    }
+    .feature-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 0.35rem;
+    }
+    .feature-card p {
+      font-size: 0.82rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    /* Results section */
+    .results-container {
+      margin-top: 2.5rem;
+      display: none;
+    }
+    .results-container.active {
+      display: block;
+      animation: fadeIn 0.35s ease;
+    }
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .results-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+    .clips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 1.25rem;
+    }
+    .clip-card {
+      background: rgba(15, 20, 32, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      overflow: hidden;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.2s ease;
+    }
+    .clip-card:hover {
+      border-color: var(--card-border-hover);
+      transform: translateY(-3px);
+    }
+    .clip-video-wrap {
+      width: 100%;
+      aspect-ratio: 9/16;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .clip-video-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .clip-score {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(16, 185, 129, 0.9);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 0.2rem 0.5rem;
+      border-radius: 9999px;
+      letter-spacing: 0.02em;
+    }
+    .clip-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-top: 0.65rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .clip-time {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 0.15rem;
+      margin-bottom: 0.65rem;
+    }
+    .clip-actions {
+      display: flex;
+      gap: 0.4rem;
+      margin-top: auto;
+    }
+    .clip-btn {
+      flex: 1;
+      padding: 0.45rem 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 8px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      transition: all 0.15s ease;
+    }
+    .btn-download {
+      background: #10b981;
+      color: #064e3b;
+    }
+    .btn-download:hover {
+      background: #34d399;
+      color: #022c22;
+    }
+    .btn-edit {
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .btn-edit:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: auto;
+    }
+
+    @media (max-width: 640px) {
+      main { padding-top: 1.75rem; }
+      .input-bar { flex-direction: column; padding: 0.75rem; }
+      .input-bar input { width: 100%; padding: 0.4rem 0; }
+      .generate-btn { width: 100%; justify-content: center; }
+      .btn-segmented { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
-<body class="w-full h-full text-slate-950">
+<body>
+
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
 
   <!-- Header -->
-  <header class="h-14 sticky top-0 w-full z-40">
-    <div class="max-w-[1500px] px-4 xl:px-12 grid grid-cols-[1fr_auto_1fr] items-center mx-auto h-full gap-3">
-      <a aria-label="Acqclips home" href="/" class="flex items-center gap-2">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-violet-600 to-fuchsia-500 flex items-center justify-center font-bold text-lg text-white shrink-0">A</div>
-          <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">Acqclips</span>
-        </div>
+  <header>
+    <a href="/" class="brand">
+      <div class="brand-logo">A</div>
+      <span class="brand-name">Acqclips</span>
+      <span class="brand-tag">AI Studio</span>
+    </a>
+    <div class="header-links">
+      <a href="/editor.html" class="header-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        Studio Editor
       </a>
-
-      <!-- Center navigation -->
-      <nav class="hidden md:flex items-center justify-center gap-6">
-        <a href="#long-to-short" class="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Clip Maker</a>
-        <a href="#youtube-to-social" class="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Repurpose YouTube</a>
-        <a href="#highlights" class="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Highlights</a>
-        <a href="#podcasts" class="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Podcasts</a>
-        <a href="#utilities" class="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Editing Tools</a>
-      </nav>
-
-      <!-- Right action buttons -->
-      <div class="ml-auto flex items-center gap-3">
-        <button onclick="scrollToInput()" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200 transition-colors flex items-center gap-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
-          </svg>
-          Upload YouTube
-        </button>
-        <button onclick="scrollToInput()" class="px-4 py-2 h-9 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-medium text-xs shadow-sm transition-all flex items-center justify-center">
-          Try Acqclips Free
-        </button>
-      </div>
     </div>
   </header>
 
-  <!-- Sticky Subnav Bar -->
-  <div class="border-b border-slate-100 bg-slate-50/70 backdrop-blur-md sticky top-14 z-30">
-    <div class="max-w-[1500px] mx-auto px-4 xl:px-12 py-2.5 flex items-center justify-between text-xs overflow-x-auto gap-4">
-      <div class="flex items-center gap-2 text-slate-500 whitespace-nowrap">
-        <a href="/" class="hover:text-slate-900">Home</a>
-        <span>/</span>
-        <span class="text-slate-900 font-semibold">AI Video Tools</span>
-      </div>
-      <div class="flex items-center gap-2 whitespace-nowrap">
-        <a href="#long-to-short" class="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-violet-400 hover:text-violet-700 transition-all font-medium">Auto-Clips</a>
-        <a href="#youtube-to-social" class="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-violet-400 hover:text-violet-700 transition-all font-medium">YouTube</a>
-        <a href="#highlights" class="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-violet-400 hover:text-violet-700 transition-all font-medium">Highlights</a>
-        <a href="#podcasts" class="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-violet-400 hover:text-violet-700 transition-all font-medium">Podcasts</a>
-        <a href="#viral" class="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-violet-400 hover:text-violet-700 transition-all font-medium">Viral Generator</a>
-        <a href="#platforms" class="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-violet-400 hover:text-violet-700 transition-all font-medium">Platforms</a>
-        <a href="#utilities" class="px-3 py-1 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-violet-400 hover:text-violet-700 transition-all font-medium">Utilities</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Hero Section -->
-  <section class="max-w-5xl mx-auto px-4 my-14 text-center flex flex-col items-center">
-    <!-- Proof Badge -->
-    <div class="mb-6 flex gap-2 items-center justify-center bg-slate-100 rounded-full px-3 py-1.5 shadow-sm border border-slate-200/60">
-      <div class="flex -space-x-2 overflow-hidden">
-        <span class="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-slate-400 overflow-hidden"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=64&h=64&fit=crop" class="h-full w-full object-cover"/></span>
-        <span class="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-slate-400 overflow-hidden"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop" class="h-full w-full object-cover"/></span>
-        <span class="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-slate-400 overflow-hidden"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64&h=64&fit=crop" class="h-full w-full object-cover"/></span>
-        <span class="inline-block h-6 w-6 rounded-full ring-2 ring-white bg-slate-400 overflow-hidden"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop" class="h-full w-full object-cover"/></span>
-      </div>
-      <p class="text-xs md:text-sm font-medium text-slate-600">
-        <strong class="text-slate-900 font-bold">8.5M clips</strong> made by <strong class="text-slate-900 font-bold">3.5M creators</strong>
-      </p>
-    </div>
-
-    <!-- Main Headline -->
-    <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-slate-950 leading-[1.1]">
-      Create Shorts 10x Faster With <strong class="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600">Klapâ€™s AI Tools</strong>
+  <!-- Main Content -->
+  <main>
+    <h1 class="hero-title">
+      Turn Long Videos into <span>Viral Shorts</span>
     </h1>
-
-    <p class="text-lg md:text-xl font-normal leading-relaxed mt-6 max-w-3xl text-slate-600">
-      Paste any YouTube URL or upload a video. Our automated backend pipeline fetches the full video, detects key highlight segments, and clips them directly into ready-to-post 9:16 vertical shorts.
+    <p class="hero-subtitle">
+      AI-powered speech recognition, automatic smart 9:16 vertical framing, dynamic Hormozi captions, and viral hook detection.
     </p>
 
-    <!-- LIVE YOUTUBE CLIPPER & FETCHER FORM -->
-    <div id="video-input-container" class="mt-10 w-full max-w-4xl mx-auto">
-      <form id="clip-generator-form" onsubmit="handleGenerateClips(event)" class="w-full bg-white relative flex flex-col sm:flex-row items-center border border-slate-200/90 shadow-2xl p-2 rounded-2xl gap-2 focus-within:ring-2 focus-within:ring-violet-500/20 focus-within:border-violet-500 transition-all">
-        <div class="flex items-center flex-1 w-full gap-2 px-2 overflow-hidden">
-          <!-- Upload Button Icon -->
-          <label for="local-file-input" class="p-2 h-10 w-10 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl cursor-pointer flex items-center justify-center shrink-0 transition-colors" title="Upload local video file">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"></path>
-            </svg>
+    <!-- Generator Box -->
+    <div class="glass-card">
+      <form id="clip-generator-form" onsubmit="handleGenerateClips(event)">
+        <div class="input-bar">
+          <!-- Upload local video -->
+          <label for="local-file-input" class="upload-icon-btn" title="Upload local video file (MP4, MOV, WEBM)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
           </label>
-          <input id="local-file-input" type="file" accept="video/mp4,video/quicktime,video/webm" class="hidden" onchange="handleFileUpload(event)" />
+          <input id="local-file-input" type="file" accept="video/mp4,video/quicktime,video/webm" style="display:none;" onchange="handleFileUpload(event)" />
 
-          <!-- URL Input Field -->
-          <div class="relative flex-1 w-full flex items-center overflow-hidden">
-            <input 
-              autocomplete="off" 
-              type="text" 
-              id="video-url-input" 
-              aria-label="Drop a file or paste a video link" 
-              placeholder="Paste YouTube video URL (e.g. https://www.youtube.com/watch?v=...)" 
-              class="pr-3 pl-1 py-2 w-full flex-1 text-sm md:text-base outline-none bg-transparent placeholder:text-slate-400 text-slate-900 font-medium" 
-              value="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-            />
-          </div>
+          <!-- YouTube URL -->
+          <input 
+            type="text" 
+            id="video-url-input" 
+            placeholder="Paste YouTube video URL (e.g. https://www.youtube.com/watch?v=...)" 
+            value="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+            required
+          />
+
+          <!-- Action Button -->
+          <button type="submit" id="generate-submit-btn" class="generate-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path></svg>
+            <span id="btn-text">Generate Clips</span>
+          </button>
         </div>
 
-        <!-- Submit Button with AI Sparkle Icon -->
-        <button 
-          type="submit" 
-          id="generate-submit-btn" 
-          class="px-6 py-3 h-11 rounded-xl bg-slate-950 hover:bg-violet-600 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 w-full sm:w-auto shrink-0 group"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 text-violet-400 group-hover:text-white transition-colors">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-          </svg>
-          <span id="btn-text">Fetch & Clip Video</span>
-        </button>
+        <!-- Customizable Configuration -->
+        <div class="options-grid">
+          <!-- Number of Clips -->
+          <div class="option-group">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+              Clips to Generate
+            </label>
+            <div class="btn-segmented">
+              <button type="button" onclick="setNumClips(2, this)" class="seg-btn">2</button>
+              <button type="button" onclick="setNumClips(4, this)" class="seg-btn active">4</button>
+              <button type="button" onclick="setNumClips(6, this)" class="seg-btn">6</button>
+              <button type="button" onclick="setNumClips(8, this)" class="seg-btn">8</button>
+            </div>
+          </div>
+
+          <!-- Duration Preset -->
+          <div class="option-group">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Clip Length
+            </label>
+            <div class="btn-segmented">
+              <button type="button" onclick="setDuration(15, this)" class="seg-btn">15s</button>
+              <button type="button" onclick="setDuration(30, this)" class="seg-btn active">30s</button>
+              <button type="button" onclick="setDuration(45, this)" class="seg-btn">45s</button>
+              <button type="button" onclick="setDuration(60, this)" class="seg-btn">60s</button>
+            </div>
+          </div>
+
+          <!-- Caption Position -->
+          <div class="option-group">
+            <label>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="9" x2="15" y2="9"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+              Caption Placement
+            </label>
+            <div class="btn-segmented-3">
+              <button type="button" onclick="setCaptionPos('up', this)" class="seg-btn">Top</button>
+              <button type="button" onclick="setCaptionPos('middle', this)" class="seg-btn">Center</button>
+              <button type="button" onclick="setCaptionPos('down', this)" class="seg-btn active">Bottom</button>
+            </div>
+          </div>
+        </div>
       </form>
 
-      <!-- Step 2: Interactive Prompt (Number of Clips & Caption Position) -->
-      <div id="pre-clip-options" class="mt-4 p-5 rounded-2xl bg-white border border-slate-200 shadow-xl text-left transition-all">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-full bg-violet-600 text-white font-bold text-xs flex items-center justify-center">1</span>
-            <h4 class="text-sm font-bold text-slate-900">Customize Clipping Setup</h4>
-          </div>
-          <span class="text-xs text-violet-600 font-semibold bg-violet-50 px-2.5 py-0.5 rounded-full">AI Speech Engine Ready</span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <!-- Number of Clips -->
-          <div>
-            <label class="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-              How many clips to create?
-            </label>
-            <div class="grid grid-cols-4 gap-2">
-              <button type="button" onclick="setIndexNumClips(2, this)" class="idx-clip-btn py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:border-violet-500 transition-all">2 Clips</button>
-              <button type="button" onclick="setIndexNumClips(4, this)" class="idx-clip-btn active py-2 text-xs font-semibold rounded-xl border border-violet-600 bg-violet-600 text-white shadow-sm transition-all">4 Clips</button>
-              <button type="button" onclick="setIndexNumClips(6, this)" class="idx-clip-btn py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:border-violet-500 transition-all">6 Clips</button>
-              <button type="button" onclick="setIndexNumClips(8, this)" class="idx-clip-btn py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:border-violet-500 transition-all">8 Clips</button>
-            </div>
-          </div>
-
-          <!-- Time Duration of Clips -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                <svg class="w-4 h-4 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Clip Time Duration
-              </label>
-              <span id="idx-duration-badge" class="text-xs font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full">30 seconds</span>
-            </div>
-            <div class="grid grid-cols-4 gap-2 mb-2">
-              <button type="button" onclick="setIndexDurationPreset(15, this)" class="idx-dur-btn py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:border-sky-500 transition-all">15s</button>
-              <button type="button" onclick="setIndexDurationPreset(30, this)" class="idx-dur-btn active py-2 text-xs font-semibold rounded-xl border border-sky-600 bg-sky-600 text-white shadow-sm transition-all">30s</button>
-              <button type="button" onclick="setIndexDurationPreset(45, this)" class="idx-dur-btn py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:border-sky-500 transition-all">45s</button>
-              <button type="button" onclick="setIndexDurationPreset(60, this)" class="idx-dur-btn py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:border-sky-500 transition-all">60s</button>
-            </div>
-            <input type="range" id="idx-duration-slider" min="15" max="60" step="5" value="30" oninput="setIndexDurationSlider(this.value)" class="w-full accent-sky-500 bg-slate-100 h-1.5 rounded-lg cursor-pointer" />
-          </div>
-
-          <!-- Caption Position Adjuster: Up, Middle, Down -->
-          <div>
-            <label class="text-xs font-bold text-slate-700 block mb-1.5 flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
-              Caption Position (Adjuster)
-            </label>
-            <div class="grid grid-cols-3 gap-2">
-              <button type="button" onclick="setIndexCaptionPos('up', this)" class="idx-pos-btn py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:border-emerald-500 flex flex-col items-center gap-1 transition-all">
-                <div class="w-5 h-2 bg-slate-300 rounded-sm mb-0.5"></div>
-                <span>Up (Top)</span>
-              </button>
-              <button type="button" onclick="setIndexCaptionPos('middle', this)" class="idx-pos-btn py-2 text-xs font-semibold rounded-xl border border-slate-200 text-slate-700 hover:border-emerald-500 flex flex-col items-center gap-1 transition-all">
-                <div class="w-5 h-2 bg-slate-300 rounded-sm mb-0.5"></div>
-                <span>Middle</span>
-              </button>
-              <button type="button" onclick="setIndexCaptionPos('down', this)" class="idx-pos-btn active py-2 text-xs font-semibold rounded-xl border border-emerald-600 bg-emerald-600 text-white shadow-sm flex flex-col items-center gap-1 transition-all">
-                <div class="w-5 h-2 bg-white rounded-sm mb-0.5"></div>
-                <span>Down (Bottom)</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Processing Progress Notification Box -->
-      <div id="processing-box" class="hidden mt-4 p-4 rounded-2xl bg-violet-50 border border-violet-200 text-left">
-        <div class="flex items-center justify-between text-xs font-semibold text-violet-900 mb-2">
-          <span class="flex items-center gap-2">
-            <svg class="animate-spin h-4 w-4 text-violet-600" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span id="progress-status-text">Fetching YouTube video & downloading stream...</span>
+      <!-- Real-time Progress Bar -->
+      <div id="status-panel" class="status-panel">
+        <div class="status-header">
+          <span id="status-label" style="display:flex; align-items:center; gap:0.5rem;">
+            <svg style="animation: spin 1s linear infinite;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+            <span id="status-text">Fetching video and analyzing speech...</span>
           </span>
-          <span class="text-violet-600" id="timer-text">Live Processing</span>
+          <span style="font-size:0.75rem; color:#818cf8;">Processing</span>
         </div>
-        <div class="w-full bg-violet-200 rounded-full h-1.5 overflow-hidden">
-          <div class="h-1.5 rounded-full shimmer-bg w-full"></div>
-        </div>
-      </div>
-
-      <div class="flex items-center justify-center gap-6 mt-3 text-xs text-slate-500 font-medium">
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-          Real video download & clipping
-        </span>
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-          9:16 Vertical auto-reframe
-        </span>
-        <span class="flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-          Instant download & playback
-        </span>
-      </div>
-    </div>
-
-    <!-- LIVE GENERATED CLIPS VIEWER -->
-    <div id="generation-results-panel" class="hidden mt-8 w-full max-w-5xl bg-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-800 text-left transition-all">
-      <div class="flex items-center justify-between pb-6 border-b border-slate-800">
-        <div>
-          <span class="px-2.5 py-1 text-xs font-semibold bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">Clipping Pipeline Finished</span>
-          <h3 id="result-video-title" class="text-xl font-bold mt-2 text-white">Generated Shorts</h3>
-          <p id="result-video-sub" class="text-xs text-slate-400 mt-1">Automatic 9:16 Framing â€¢ Peak Engagement Moments</p>
-        </div>
-        <button onclick="closeResultsPanel()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-      </div>
-
-      <!-- Generated Clips Grid -->
-      <div id="clips-output-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-        <!-- Rendered dynamically -->
-      </div>
-    </div>
-
-    <!-- Used by teams at - Logo Marquee -->
-    <div class="max-w-full overflow-hidden w-full mt-20">
-      <p class="text-sm font-semibold tracking-wider uppercase text-slate-400 text-center mb-6">
-        Used by teams at leading media and universities
-      </p>
-      
-      <div class="relative flex overflow-hidden group w-full [mask-image:_linear-gradient(to_right,_transparent_0,_black_128px,_black_calc(100%_-_128px),_transparent_100%)]">
-        <div class="flex animate-marquee shrink-0 items-center gap-12 pr-12 py-3">
-          <img src="public/svg/logos/adidas.svg" alt="adidas" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/bbc.svg" alt="bbc" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/berkeley.svg" alt="berkeley" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/bolt.svg" alt="bolt" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/buzzfeed.svg" alt="buzzfeed" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/google.svg" alt="google" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/greenpeace.svg" alt="greenpeace" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/harvard.svg" alt="harvard" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/lemonde.svg" alt="lemonde" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/netflix.svg" alt="netflix" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/redbull.svg" alt="redbull" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/spotify.svg" alt="spotify" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/stanford.svg" alt="stanford" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/tiktok.svg" alt="tiktok" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-        </div>
-        <div aria-hidden="true" class="flex animate-marquee shrink-0 items-center gap-12 pr-12 py-3">
-          <img src="public/svg/logos/adidas.svg" alt="adidas" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/bbc.svg" alt="bbc" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/berkeley.svg" alt="berkeley" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/bolt.svg" alt="bolt" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/buzzfeed.svg" alt="buzzfeed" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/google.svg" alt="google" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/greenpeace.svg" alt="greenpeace" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/harvard.svg" alt="harvard" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/lemonde.svg" alt="lemonde" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/netflix.svg" alt="netflix" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/redbull.svg" alt="redbull" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/spotify.svg" alt="spotify" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/stanford.svg" alt="stanford" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
-          <img src="public/svg/logos/tiktok.svg" alt="tiktok" class="h-6 w-auto opacity-60 hover:opacity-100 transition-opacity" />
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill"></div>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- Interactive Filter Bar -->
-  <div class="max-w-[1500px] mx-auto px-4 xl:px-12 mt-6">
-    <div class="flex items-center gap-2 overflow-x-auto py-2 border-b border-slate-200">
-      <span class="text-xs font-semibold text-slate-400 mr-2 uppercase tracking-wider">Browse:</span>
-      <button onclick="filterCategory('all')" class="category-btn active px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-900 text-white">All 24 Tools</button>
-      <button onclick="filterCategory('long-to-short')" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100">Clip Makers</button>
-      <button onclick="filterCategory('youtube-to-social')" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100">YouTube</button>
-      <button onclick="filterCategory('highlights')" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100">Highlights</button>
-      <button onclick="filterCategory('podcasts')" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100">Podcasts</button>
-      <button onclick="filterCategory('viral')" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100">Viral Clips</button>
-      <button onclick="filterCategory('platforms')" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100">Platforms</button>
-      <button onclick="filterCategory('utilities')" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-600 hover:bg-slate-100">Utilities</button>
+    <!-- Generated Results Grid -->
+    <div id="results-container" class="results-container">
+      <div class="results-header">
+        <div>
+          <h2 class="results-title">Generated Clips</h2>
+          <p id="results-meta" style="font-size: 0.82rem; color: #94a3b8; margin-top: 0.2rem;">Ready for preview and download</p>
+        </div>
+        <a id="open-editor-btn" href="/editor.html" class="header-btn" style="background:#6366f1; color:#fff; border:none;">
+          Open in Studio &rarr;
+        </a>
+      </div>
+      <div id="clips-grid" class="clips-grid">
+        <!-- Rendered clips will appear here -->
+      </div>
     </div>
-  </div>
 
-  <!-- TOOL CATALOG GRIDS -->
-  <main class="mx-auto my-12 px-4 max-w-[1500px] xl:px-12 space-y-20">
-
-    <!-- Section 1: Turn long videos into short clips -->
-    <section id="long-to-short" class="scroll-mt-32 category-section">
-      <div class="flex items-end justify-between border-b border-slate-100 pb-4">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Turn long videos into short clips</h2>
-          <p class="text-sm text-slate-500 mt-1">Automatic speaker framing, virality scoring, and multi-clip extraction.</p>
+    <!-- 3 Core Feature Highlights -->
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
         </div>
+        <h3>Smart Vertical Framing</h3>
+        <p>Converts standard 16:9 widescreen videos into optimal 9:16 aspect ratio tailored for TikTok, Reels, and Shorts.</p>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-        
-        <div class="tool-card group" onclick="loadToolDemo('Long Video to Short Video Converter', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-ai-generate.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-              <span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0">Use Tool &rarr;</span>
-            </div>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Long Video to Short Video Converter</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Convert long video to short video for free with Klap's AI. Get 10+ shorts in 30 seconds.</p>
-        </div>
 
-        <div class="tool-card group" onclick="loadToolDemo('AI Clip Maker', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-framing.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-              <span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0">Use Tool &rarr;</span>
-            </div>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">AI Clip Maker</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Free AI clip maker. Turn any video into 10+ viral clips in 30 seconds with Virality Score and speaker tracking.</p>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
         </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('AI Clip Generator', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-captions.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-              <span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0">Use Tool &rarr;</span>
-            </div>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">AI Clip Generator</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Turns your long videos into short clips. Not a text-to-video tool â€” works directly with your real video footage.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('AI Video Clipping Tool', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-style.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-            <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-              <span class="opacity-0 group-hover:opacity-100 bg-white/95 text-slate-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0">Use Tool &rarr;</span>
-            </div>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">AI Video Clipping Tool</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Turn long videos into pro-grade short clips at scale. Bulk processing, brand kits, and API for agencies.</p>
-        </div>
-
+        <h3>AI Captions & Subtitles</h3>
+        <p>Speech-to-text engine synchronizes spoken words into bold, high-engagement animated caption presets.</p>
       </div>
-    </section>
 
-    <!-- Section 2: Repurpose YouTube videos for every platform -->
-    <section id="youtube-to-social" class="scroll-mt-32 category-section">
-      <div class="flex items-end justify-between border-b border-slate-100 pb-4">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Repurpose YouTube videos for every platform</h2>
-          <p class="text-sm text-slate-500 mt-1">Paste any public YouTube link to instantly extract high-converting vertical video.</p>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
         </div>
+        <h3>Virality Hook Detection</h3>
+        <p>Analyzes speech energy and semantic peaks to locate the highest-impact moments in your video automatically.</p>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-        
-        <div class="tool-card group" onclick="loadToolDemo('YouTube to Shorts Converter', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-upload.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">YouTube to Shorts Converter</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Paste a YouTube URL. Get 30+ Shorts in 30 seconds. Direct publish to YouTube with zero watermarks.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('YouTube Clip Maker', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-demo.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">YouTube Clip Maker</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">AI YouTube clip maker that extracts the most exciting segments automatically.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('YouTube to TikTok Converter', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/ai-reframe-compressed.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">YouTube to TikTok Converter</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Convert any YouTube link into TikTok 9:16 vertical videos with word-by-word animated captions.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('YouTube to Instagram Reels', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-ai-generate.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">YouTube to Instagram</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Turn long YouTube interviews into Instagram Reels, Stories, and carousel videos.</p>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Section 3: AI Highlights -->
-    <section id="highlights" class="scroll-mt-32 category-section">
-      <div class="flex items-end justify-between border-b border-slate-100 pb-4">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-900">AI highlight reels in seconds</h2>
-          <p class="text-sm text-slate-500 mt-1">Sports, gaming, podcasts, and livestream automated recap generation.</p>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-        <div class="tool-card group" onclick="loadToolDemo('Highlight Video Maker', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-framing.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Highlight Video Maker</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Make highlight videos in 30 seconds. AI detects the peak moments in sports, gaming, and weddings.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('Sports Highlight Video Maker', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-captions.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Sports Highlight Video Maker</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Auto-detects goals, plays, crowds, and celebrations for basketball, soccer, and football.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 4: Video Podcasters -->
-    <section id="podcasts" class="scroll-mt-32 category-section">
-      <div class="flex items-end justify-between border-b border-slate-100 pb-4">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Tools for video podcasters</h2>
-          <p class="text-sm text-slate-500 mt-1">Multi-speaker auto camera switching and synchronized transcripts.</p>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-        <div class="tool-card group" onclick="loadToolDemo('Podcast Clip Maker', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-style.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Podcast Clip Maker</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Turn 2-hour episodes into 20+ viral clips in 30 seconds with split-screen multi-host framing.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('Podcast Transcript Generator', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-ai-generate.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Podcast Transcript Generator</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Convert your podcast episodes into searchable, SEO-friendly transcripts with timestamped speaker tags.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 5: Utilities & Editing -->
-    <section id="utilities" class="scroll-mt-32 category-section">
-      <div class="flex items-end justify-between border-b border-slate-100 pb-4">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-900">Editing and utility tools</h2>
-          <p class="text-sm text-slate-500 mt-1">Precision video manipulation powered by browser-first AI.</p>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-6">
-        
-        <div class="tool-card group" onclick="loadToolDemo('AI Subtitle Generator', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/ai_caption_translation.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Subtitle Generator</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Effortlessly create accurate, synchronized subtitles with modern presets.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('AI Video Translator', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/ai_caption_translation.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Video Translator</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Translate spoken voice and captions into 50+ languages with voice cloning.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('Video Cropper', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-ai-generate.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Video Cropper</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Smart focal subject crop for 16:9 to 9:16, 1:1, or 4:5 ratios.</p>
-        </div>
-
-        <div class="tool-card group" onclick="loadToolDemo('Video Resizer', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')">
-          <div class="video-container bg-slate-100 rounded-2xl flex items-center justify-center p-4 pt-6 overflow-hidden relative border border-slate-200/60">
-            <video src="https://assets.klap.app/web-assets/landing/klap-ai-generate.mp4" loop muted playsinline class="rounded-lg w-full shadow-sm"></video>
-          </div>
-          <h3 class="text-base font-semibold text-slate-900 mt-3 group-hover:text-violet-600 transition-colors">Video Resizer</h3>
-          <p class="text-xs text-slate-500 mt-1 line-clamp-2">Resize without black bars using blur-background fill or intelligent reframing.</p>
-        </div>
-
-      </div>
-    </section>
-
+    </div>
   </main>
 
   <!-- Footer -->
-  <footer class="py-16 max-w-[1500px] px-4 xl:px-12 text-center mx-auto border-t border-slate-100 mt-24">
-    <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-12 border-b border-slate-100 text-left">
-      <div>
-        <div class="flex items-center gap-2 mb-2">
-          <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-violet-600 to-fuchsia-500 flex items-center justify-center font-bold text-base text-white">A</div>
-          <span class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">Acqclips</span>
-        </div>
-        <p class="text-xs text-slate-500">Autonomous AI video cloner and reverse engineered tools layout.</p>
-      </div>
-      <div class="flex items-center gap-6 text-xs text-slate-500 font-medium">
-        <a href="#long-to-short" class="hover:text-slate-900">Clip Maker</a>
-        <a href="#youtube-to-social" class="hover:text-slate-900">YouTube</a>
-        <a href="#highlights" class="hover:text-slate-900">Highlights</a>
-        <a href="#podcasts" class="hover:text-slate-900">Podcasts</a>
-        <a href="#utilities" class="hover:text-slate-900">Utilities</a>
-      </div>
-    </div>
-    <p class="text-xs text-slate-400 mt-8">
-      &copy; 2026 Acqclips &bull; Powered by REA Autonomous AI Engine
-    </p>
+  <footer>
+    Acqclips &copy; 2026 &bull; AI Video Clipping Engine &bull; Self-hosted & Local
   </footer>
 
-  <!-- CLIENT-SIDE SCRIPT CONNECTED TO LIVE BACKEND PIPELINE -->
+  <style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  </style>
+
+  <!-- Clean Application Script -->
   <script>
+    let numClips = 4;
+    let clipDuration = 30;
+    let captionPosition = 'down';
+    let selectedFile = null;
     let activePollInterval = null;
-    let selectedNumClips = 4;
-    let selectedCaptionPos = 'down';
-    let selectedDuration = 30;
 
-    function setIndexDurationPreset(sec, el) {
-      selectedDuration = parseInt(sec);
-      document.getElementById('idx-duration-badge').innerText = sec + ' seconds';
-      document.getElementById('idx-duration-slider').value = sec;
-      document.querySelectorAll('.idx-dur-btn').forEach(btn => {
-        btn.classList.remove('active', 'bg-sky-600', 'text-white', 'border-sky-600', 'shadow-sm');
-        btn.classList.add('border-slate-200', 'text-slate-700');
-      });
-      el.classList.add('active', 'bg-sky-600', 'text-white', 'border-sky-600', 'shadow-sm');
-      el.classList.remove('border-slate-200', 'text-slate-700');
+    function setNumClips(num, btn) {
+      numClips = num;
+      btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
     }
 
-    function setIndexDurationSlider(val) {
-      selectedDuration = parseInt(val);
-      document.getElementById('idx-duration-badge').innerText = val + ' seconds';
-      document.querySelectorAll('.idx-dur-btn').forEach(btn => {
-        if (btn.innerText.trim() === val + 's') {
-          btn.classList.add('active', 'bg-sky-600', 'text-white', 'border-sky-600', 'shadow-sm');
-          btn.classList.remove('border-slate-200', 'text-slate-700');
-        } else {
-          btn.classList.remove('active', 'bg-sky-600', 'text-white', 'border-sky-600', 'shadow-sm');
-          btn.classList.add('border-slate-200', 'text-slate-700');
-        }
-      });
+    function setDuration(dur, btn) {
+      clipDuration = dur;
+      btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
     }
 
-    function setIndexNumClips(num, el) {
-      selectedNumClips = num;
-      document.querySelectorAll('.idx-clip-btn').forEach(btn => {
-        btn.classList.remove('active', 'bg-violet-600', 'text-white', 'border-violet-600', 'shadow-sm');
-        btn.classList.add('border-slate-200', 'text-slate-700');
-      });
-      el.classList.add('active', 'bg-violet-600', 'text-white', 'border-violet-600', 'shadow-sm');
-      el.classList.remove('border-slate-200', 'text-slate-700');
+    function setCaptionPos(pos, btn) {
+      captionPosition = pos;
+      btn.parentElement.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
     }
 
-    function setIndexCaptionPos(pos, el) {
-      selectedCaptionPos = pos;
-      document.querySelectorAll('.idx-pos-btn').forEach(btn => {
-        btn.classList.remove('active', 'bg-emerald-600', 'text-white', 'border-emerald-600', 'shadow-sm');
-        btn.classList.add('border-slate-200', 'text-slate-700');
-        const bar = btn.querySelector('div');
-        if (bar) bar.className = 'w-5 h-2 bg-slate-300 rounded-sm mb-0.5';
-      });
-      el.classList.add('active', 'bg-emerald-600', 'text-white', 'border-emerald-600', 'shadow-sm');
-      el.classList.remove('border-slate-200', 'text-slate-700');
-      const bar = el.querySelector('div');
-      if (bar) bar.className = 'w-5 h-2 bg-white rounded-sm mb-0.5';
-    }
-    let selectedLocalFile = null;
-
-    function scrollToInput() {
-      const el = document.getElementById('video-input-container');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        document.getElementById('video-url-input')?.focus();
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        selectedFile = file;
+        document.getElementById('video-url-input').value = 'File: ' + file.name;
       }
     }
 
-    function filterCategory(catId) {
-      document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.remove('active', 'bg-slate-900', 'text-white');
-        btn.classList.add('text-slate-600');
-      });
-      event.target.classList.add('active', 'bg-slate-900', 'text-white');
-      event.target.classList.remove('text-slate-600');
-
-      const sections = document.querySelectorAll('.category-section');
-      if (catId === 'all') {
-        sections.forEach(s => s.style.display = 'block');
-      } else {
-        sections.forEach(s => {
-          if (s.id === catId) {
-            s.style.display = 'block';
-            s.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            s.style.display = 'none';
-          }
-        });
-      }
-    }
-
-    // Handles YouTube URL submit or local video submit
     async function handleGenerateClips(e) {
       if (e) e.preventDefault();
-      const input = document.getElementById('video-url-input');
+
+      const urlInput = document.getElementById('video-url-input');
       const submitBtn = document.getElementById('generate-submit-btn');
       const btnText = document.getElementById('btn-text');
-      const processingBox = document.getElementById('processing-box');
-      const progressText = document.getElementById('progress-status-text');
+      const statusPanel = document.getElementById('status-panel');
+      const statusText = document.getElementById('status-text');
 
-      const urlValue = input.value.trim();
-
-      if (!urlValue && !selectedLocalFile) {
-        alert('Please enter a YouTube video URL or choose a video file.');
-        return;
+      const formData = new FormData();
+      if (selectedFile) {
+        formData.append('video_file', selectedFile);
+      } else {
+        const url = urlInput.value.trim();
+        if (!url) {
+          alert('Please enter a YouTube URL or upload a video file.');
+          return;
+        }
+        formData.append('url', url);
       }
 
-      // UI processing state
+      formData.append('num_clips', numClips);
+      formData.append('duration', clipDuration);
+      formData.append('resolution', '9:16');
+      formData.append('caption_style', 'alex_hormozi');
+      formData.append('caption_position', captionPosition);
+
       submitBtn.disabled = true;
-      btnText.innerText = 'Clipping in progress...';
-      processingBox.classList.remove('hidden');
-      progressText.innerText = 'Connecting to backend video engine...';
+      btnText.innerText = 'Processing...';
+      statusPanel.classList.add('active');
+      statusText.innerText = 'Connecting to backend and downloading video...';
 
       try {
-        let response;
-        if (selectedLocalFile) {
-          const formData = new FormData();
-          formData.append('video_file', selectedLocalFile);
-          formData.append('num_clips', selectedNumClips);
-          formData.append('caption_position', selectedCaptionPos);
-          formData.append('duration', selectedDuration);
-          response = await fetch('/api/generate-clips', {
-            method: 'POST',
-            body: formData
-          });
-        } else {
-          response = await fetch('/api/generate-clips', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: urlValue, num_clips: selectedNumClips, duration: selectedDuration, caption_position: selectedCaptionPos })
-          });
-        }
+        const response = await fetch('/api/generate-clips', {
+          method: 'POST',
+          body: formData
+        });
 
         const data = await response.json();
         if (!response.ok || !data.job_id) {
-          throw new Error(data.error || 'Server failed to start clipping job');
+          throw new Error(data.error || 'Failed to start generation job');
         }
 
-        // Poll job status until complete
-        pollJobStatus(data.job_id);
-
+        pollJob(data.job_id);
       } catch (err) {
-        console.error('Error starting clip generator:', err);
         alert('Error: ' + err.message);
-        resetSubmitBtn();
+        submitBtn.disabled = false;
+        btnText.innerText = 'Generate Clips';
+        statusPanel.classList.remove('active');
       }
     }
 
-    function pollJobStatus(jobId) {
-      const progressText = document.getElementById('progress-status-text');
-      
+    function pollJob(jobId) {
+      const statusText = document.getElementById('status-text');
+      const submitBtn = document.getElementById('generate-submit-btn');
+      const btnText = document.getElementById('btn-text');
+      const statusPanel = document.getElementById('status-panel');
+
       if (activePollInterval) clearInterval(activePollInterval);
 
       activePollInterval = setInterval(async () => {
@@ -771,104 +804,64 @@
           const data = await res.json();
 
           if (data.progress) {
-            progressText.innerText = data.progress;
+            statusText.innerText = data.progress;
           }
 
           if (data.status === 'completed') {
             clearInterval(activePollInterval);
-            renderClipsResult(data, jobId); localStorage.setItem('last_acqclips_job_id', jobId); setTimeout(() => { window.location.href = '/editor.html?job_id=' + jobId; }, 1200);
-            resetSubmitBtn();
+            submitBtn.disabled = false;
+            btnText.innerText = 'Generate Clips';
+            statusPanel.classList.remove('active');
+            localStorage.setItem('last_acqclips_job_id', jobId);
+            renderResults(data, jobId);
           } else if (data.status === 'failed') {
             clearInterval(activePollInterval);
+            submitBtn.disabled = false;
+            btnText.innerText = 'Generate Clips';
+            statusPanel.classList.remove('active');
             alert('Clipping failed: ' + (data.progress || 'Unknown error'));
-            resetSubmitBtn();
           }
         } catch (e) {
-          console.error('Polling error:', e);
+          console.error(e);
         }
       }, 1500);
     }
 
-    function resetSubmitBtn() {
-      const submitBtn = document.getElementById('generate-submit-btn');
-      const btnText = document.getElementById('btn-text');
-      const processingBox = document.getElementById('processing-box');
-      submitBtn.disabled = false;
-      btnText.innerText = 'Fetch & Clip Video';
-      processingBox.classList.add('hidden');
-    }
+    function renderResults(jobData, jobId) {
+      const container = document.getElementById('results-container');
+      const grid = document.getElementById('clips-grid');
+      const meta = document.getElementById('results-meta');
+      const editBtn = document.getElementById('open-editor-btn');
 
-    function renderClipsResult(jobData) {
-      const resultsPanel = document.getElementById('generation-results-panel');
-      const grid = document.getElementById('clips-output-grid');
-      const title = document.getElementById('result-video-title');
-      const sub = document.getElementById('result-video-sub');
-
-      title.innerText = `Generated ${jobData.clips.length} Shorts from: ${jobData.video_title}`;
-      sub.innerText = `Total Duration: ${jobData.video_duration}s â€¢ Opening Video Editor... <a href='/editor.html?job_id=' + (jobData.job_id || '') class='ml-2 inline-flex items-center gap-1 px-3 py-1 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-xs font-semibold'>Open Editor &rarr;</a>`;
-
+      editBtn.href = '/editor.html?job_id=' + jobId;
+      meta.innerText = `${jobData.video_title || 'Video'} • ${jobData.clips.length} Clips Created`;
       grid.innerHTML = '';
 
       jobData.clips.forEach(clip => {
         const card = document.createElement('div');
-        card.className = 'bg-slate-800/80 rounded-2xl overflow-hidden border border-slate-700/60 p-3 group hover:border-violet-500 transition-all';
+        card.className = 'clip-card';
         card.innerHTML = `
-          <div class="relative aspect-[9/16] rounded-xl overflow-hidden bg-black flex items-center justify-center">
-            <video src="${clip.url}" controls autoplay loop muted playsinline class="w-full h-full object-cover"></video>
-            <div class="absolute top-2 right-2 bg-emerald-500/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">Score: ${clip.score}</div>
+          <div class="clip-video-wrap">
+            <video src="${clip.url}" controls playsinline></video>
+            <span class="clip-score">Score ${clip.score}</span>
           </div>
-          <h4 class="text-xs font-semibold mt-2.5 text-white truncate" title="${clip.title}">${clip.title}</h4>
-          <p class="text-[11px] text-slate-400 mt-0.5">${clip.start}s - ${clip.end}s (${clip.duration})</p>
-          <a href="${clip.url}" download="${clip.filename}" class="mt-2.5 w-full py-1.5 text-xs font-medium bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 no-underline">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            Download Clip
-          </a>
-          <a href='/editor.html' class='mt-1.5 w-full py-1 text-[11px] font-semibold bg-slate-700/80 hover:bg-slate-700 text-slate-200 rounded-lg transition-colors flex items-center justify-center gap-1 no-underline'>Edit in Studio &rarr;</a>
+          <div class="clip-name" title="${clip.title}">${clip.title}</div>
+          <div class="clip-time">${clip.start}s – ${clip.end}s (${clip.duration})</div>
+          <div class="clip-actions">
+            <a href="${clip.url}" download="${clip.filename || 'clip.mp4'}" class="clip-btn btn-download">
+              Download
+            </a>
+            <a href="/editor.html?job_id=${jobId}" class="clip-btn btn-edit">
+              Edit
+            </a>
+          </div>
         `;
         grid.appendChild(card);
       });
 
-      resultsPanel.classList.remove('hidden');
-      resultsPanel.classList.add('modal-active');
-      resultsPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      container.classList.add('active');
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-
-    function closeResultsPanel() {
-      document.getElementById('generation-results-panel').classList.add('hidden');
-    }
-
-    function handleFileUpload(e) {
-      const file = e.target.files[0];
-      if (file) {
-        selectedLocalFile = file;
-        document.getElementById('video-url-input').value = 'Local File: ' + file.name;
-        handleGenerateClips();
-      }
-    }
-
-    function loadToolDemo(toolName, url) {
-      document.getElementById('video-url-input').value = url;
-      scrollToInput();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const videos = document.querySelectorAll('section video');
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.play().catch(() => {});
-          } else {
-            entry.target.pause();
-          }
-        });
-      }, { threshold: 0.25 });
-
-      videos.forEach(v => {
-        v.muted = true;
-        v.playsInline = true;
-        observer.observe(v);
-      });
-    });
   </script>
 </body>
 </html>
